@@ -178,10 +178,8 @@ class LDAP(object):
             result = {}
             if records:
                 if dn_only:
-                    if current_app.config['LDAP_OBJECTS_DN'] in records[0][1]:
-                        dn = records[0][1][
-                            current_app.config['LDAP_OBJECTS_DN']]
-                        return dn[0]
+                    dn = records[0][0]
+                    return dn
                 for k, v in records[0][1].items():
                     result[k] = v
                 return result
