@@ -195,20 +195,18 @@ class LDAP(object):
 
         conn = self.bind
         try:
+            fields = [str(current_app.config['LDAP_MEMBER_FILTER_FIELD'])]
             records = conn.search_s(
                 current_app.config['LDAP_BASE_DN'], ldap.SCOPE_SUBTREE,
-                ldap.filter.filter_format(
-                    current_app.config['LDAP_USER_OBJECT_FILTER'], (user,)),
-                [current_app.config['LDAP_USER_GROUPS_FIELD']])
+                ldap.filter.filter_format(current_app.config['LDAP_GROUP_MEMBERS_FILTER'],
+                                          (self.get_object_details(user, dn_only=True),)),
+                fields)
             conn.unbind_s()
             if records:
-                if current_app.config['LDAP_USER_GROUPS_FIELD'] in \
-                        records[0][1]:
-                    groups = records[0][1][
-                        current_app.config['LDAP_USER_GROUPS_FIELD']]
-                    result = [re.findall('(?:cn=|CN=)(.*?),', group)[0] for
-                              group in groups]
-                    return result
+                groups = [record[1][current_app.config['LDAP_MEMBER_FILTER_FIELD']][0] for
+                          record in records]
+                return groups
+
         except ldap.LDAPError as e:
             raise LDAPException(self.error(e))
 
